@@ -394,13 +394,24 @@ function Dashboard({ metricas }: { metricas: Metricas | null }) {
     return x - Math.floor(x); // 0..1
   };
 
-  const ultimos7Dias = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    return d.toISOString().slice(0, 10);
-  });
+  // Anclar fechas usando los datos del servidor para evitar hydration mismatch
   const porDiaMap = new Map(porDia.map((d) => [d.dia, d.n]));
   const totalHoy = activeItem?.n ?? 0;
+  // Usar la fecha más reciente de porDia como ancla (viene del server, es consistente)
+  const fechaAncla = porDia.length > 0
+    ? porDia.reduce((a, b) => (a.dia > b.dia ? a : b)).dia
+    : null;
+  const ultimos7Dias = Array.from({ length: 7 }, (_, i) => {
+    if (fechaAncla) {
+      // Calcular a partir de la fecha ancla del server
+      const [y, m, d] = fechaAncla.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      date.setDate(date.getDate() - (6 - i));
+      return date.toISOString().slice(0, 10);
+    }
+    // Fallback: si no hay datos aún, mostrar 7 slots vacíos con label genérico
+    return `dia-${i + 1}`;
+  });
 
   const activePoints = ultimos7Dias.map((dia, idx) => {
     const realN = porDiaMap.get(dia) ?? 0;
