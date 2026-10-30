@@ -4,6 +4,7 @@ import { inngest } from "@/lib/inngest";
 import { enviarTexto } from "@/lib/evolution";
 import { exec } from "@/lib/db";
 import { extraerTextoDeMedia } from "@/lib/media";
+import { procesarConversacion } from "@/lib/bot";
 
 export const maxDuration = 60;
 
@@ -86,13 +87,12 @@ export async function POST(req: Request) {
       await enviarTexto(jid, aviso);
       await exec("INSERT INTO bot_mensajes (conversacion_id, rol, texto) VALUES (?, 'bot', ?)", [r.conversacionId, aviso]);
     } else {
-      if (!process.env.INNGEST_SIGNING_KEY && !process.env.INNGEST_EVENT_KEY || process.env.INNGEST_DEV === "1") {
-        // Modo directo: sin Inngest o INNGEST_DEV=1
-        const { procesarConversacion } = await import("@/lib/bot");
-        procesarConversacion(r.conversacionId).catch((err) => console.error("[Bot directo]", err));
-      } else {
-        // Producción con Inngest: encolar evento
-        await inngest.send({ name: "chat/mensaje", data: { conversacionId: r.conversacionId } });
+      console.log(`[Webhook] Ejecutando procesarConversacion(${r.conversacionId}) directamente...`);
+      try {
+        await procesarConversacion(r.conversacionId);
+        console.log(`[Webhook] Conversacion ${r.conversacionId} procesada y enviada a WhatsApp.`);
+      } catch (err) {
+        console.error(`[Webhook Error] Fallo al procesar ${r.conversacionId}:`, err);
       }
     }
   }
