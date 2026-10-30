@@ -312,10 +312,10 @@ export async function procesarConversacion(convId: number) {
   const usuarioPidioFoto = PIDE_FOTO_RE.test(textoEntrante);
   if (!bloqueada && !motivo && usuarioPidioFoto) {
     try {
-      const prodLogs = log.filter((l) => l.nombre === "buscar_producto" && l.resultado?.encontrado);
+      const prodLogs = log.filter((l) => (l.nombre === "buscar_producto" || l.nombre === "buscar_moto" || l.nombre === "buscar_repuesto") && l.resultado?.encontrado);
       const todasLasImgs = prodLogs
-        .flatMap((l) => l.resultado?.productos || [])
-        .map((p: any) => p.imagen_categoria)
+        .flatMap((l) => (l.resultado?.productos || l.resultado?.motos || l.resultado?.repuestos || []))
+        .map((p: any) => p.imagen_categoria || p.imagen)
         .filter(Boolean);
       // Deduplicar por URL — la primera es la de mayor score (ya ordenada por tools.ts)
       const imagenesUnicas: string[] = [];
