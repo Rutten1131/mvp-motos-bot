@@ -845,7 +845,9 @@ function CatalogoShowroom() {
 
       <div className="showroom-grid">
         {filtrados.map(p => {
-          const precioConIva = (p.precio_iva || p.precio * 1.15).toFixed(2);
+          const precioNum = Number(p.precio) || 0;
+          const ivaNum = p.precio_iva != null ? Number(p.precio_iva) : (precioNum * 1.15);
+          const precioConIva = (Number.isFinite(ivaNum) ? ivaNum : precioNum * 1.15).toFixed(2);
           const imgSrc = imgPorCat[p.categoria] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80";
 
           return (
@@ -860,10 +862,10 @@ function CatalogoShowroom() {
               <div className="showroom-body">
                 <div>
                   <div className="showroom-price">
-                    $${p.precio.toFixed(2)} <span style={{ fontSize: 13, color: "#94a3b8", fontWeight: 400 }}>USD</span>
+                    ${precioNum.toFixed(2)} <span style={{ fontSize: 13, color: "#94a3b8", fontWeight: 400 }}>USD</span>
                   </div>
                   <div className="showroom-price-sub">
-                    $${precioConIva} con IVA incluido
+                    ${precioConIva} con IVA incluido
                   </div>
 
                   <h4 style={{ fontSize: 16, fontWeight: 700, color: "#ffffff", margin: "0 0 6px 0" }}>
@@ -878,7 +880,7 @@ function CatalogoShowroom() {
                   <button 
                     className="btn-nigeen" 
                     style={{ fontSize: 12, padding: "6px 8px 6px 14px" }}
-                    onClick={() => alert(`Gestión de Stock y Fotos para: ${p.nombre}\n\nPrecio Base: $${p.precio}\nPrecio c/IVA: $${precioConIva}\nStock actual: ${p.stock} unidades\n\nLas fotos se sincronizan directamente con el almacenamiento de Bunny CDN para despacho en WhatsApp.`)}
+                    onClick={() => alert(`Gestión de Stock y Fotos para: ${p.nombre}\n\nPrecio Base: $${p.precio}\nPrecio c/IVA: ${precioConIva}\nStock actual: ${p.stock} unidades\n\nLas fotos se sincronizan directamente con el almacenamiento de Bunny CDN para despacho en WhatsApp.`)}
                   >
                     <span>Gestionar Fotos & Stock</span>
                     <span className="btn-nigeen-circle" style={{ width: 22, height: 22, fontSize: 13 }}>›</span>
